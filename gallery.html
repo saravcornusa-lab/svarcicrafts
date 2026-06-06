@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gallery — Svarci Handicrafts</title>
+  <meta name="description" content="Browse 311 handcrafted pieces — miniatures, quilling, peg dolls, crochet, clay jewellery and more."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/styles.css"/>
+  <style>
+    .load-more-wrap { text-align:center; margin: var(--sp-lg) 0; }
+    .count-badge {
+      display:inline-block; background:var(--terracotta); color:#fff;
+      font-size:0.65rem; font-weight:700; padding:2px 6px; border-radius:10px;
+      margin-left:4px; vertical-align:middle;
+    }
+
+    /* ── Lightbox ── */
+    .gallery-card { cursor: zoom-in; }
+    .lightbox {
+      position: fixed; inset: 0;
+      background: rgba(20, 15, 10, 0.88);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 2rem;
+      opacity: 0;
+      transition: opacity var(--t-med) var(--ease);
+    }
+    .lightbox.is-open { display: flex; opacity: 1; }
+    .lightbox-content {
+      position: relative;
+      max-width: 900px;
+      width: 100%;
+      max-height: 90vh;
+      background: var(--white);
+      border-radius: var(--r-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      transform: scale(0.95);
+      transition: transform var(--t-med) var(--ease);
+    }
+    .lightbox.is-open .lightbox-content { transform: scale(1); }
+    .lightbox-img {
+      width: 100%;
+      max-height: 75vh;
+      object-fit: contain;
+      background: var(--cream-dark);
+      display: block;
+    }
+    .lightbox-info {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--cream-dark);
+    }
+    .lightbox-title {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--brown-dark);
+    }
+    .lightbox-cat {
+      font-size: 0.7rem;
+      color: var(--terracotta);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+    .lightbox-close {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--white);
+      color: var(--brown-dark);
+      font-size: 1.5rem;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 1001;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+    }
+    .lightbox-close:hover { background: var(--terracotta); color: #fff; transform: scale(1.05); }
+    body.lightbox-open { overflow: hidden; }
+
+    /* ── Lightbox arrows ── */
+    .lightbox-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--brown-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 1001;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+    }
+    .lightbox-nav:hover { background: var(--terracotta); color: #fff; }
+    .lightbox-nav svg { width: 20px; height: 20px; }
+    .lightbox-prev { left: 1.25rem; }
+    .lightbox-next { right: 1.25rem; }
+    .lightbox-nav[hidden] { display: none !important; }
+
+    /* ── Lightbox thumbnails ── */
+    .lightbox-thumbs {
+      display: flex;
+      gap: 8px;
+      padding: 0.75rem 1.5rem 1rem;
+      background: var(--cream);
+      border-top: 1px solid var(--cream-dark);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .lightbox-thumbs[hidden] { display: none !important; }
+    .lightbox-thumb {
+      width: 64px;
+      height: 64px;
+      border-radius: var(--r-sm);
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      background: var(--cream-dark);
+      padding: 0;
+      flex: 0 0 auto;
+      transition: border-color var(--t-fast), transform var(--t-fast);
+    }
+    .lightbox-thumb img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .lightbox-thumb:hover { transform: scale(1.05); }
+    .lightbox-thumb.is-active {
+      border-color: var(--terracotta);
+    }
+
+    @media (max-width: 600px) {
+      .lightbox { padding: 0.5rem; }
+      .lightbox-close { top: 0.75rem; right: 0.75rem; width: 38px; height: 38px; font-size: 1.25rem; }
+      .lightbox-img { max-height: 60vh; }
+      .lightbox-nav { width: 38px; height: 38px; }
+      .lightbox-prev { left: 0.5rem; }
+      .lightbox-next { right: 0.5rem; }
+      .lightbox-thumb { width: 52px; height: 52px; }
+      .lightbox-thumbs { padding: 0.5rem 0.75rem 0.75rem; gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="uploads/Svarci_handicrafts_logo.jpg" alt="Svarci Handicrafts Logo"/>
+    </a>
+    <ul class="nav-links desktop">
+      <li><a href="index.html"   class="nav-link">Home</a></li>
+      <li><a href="gallery.html" class="nav-link">Gallery</a></li>
+      <li><a href="about.html"   class="nav-link">About</a></li>
+      <li><a href="contact.html" class="nav-link">Contact</a></li>
+    </ul>
+    <div class="nav-hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+<div class="mobile-menu">
+  <a href="index.html"   class="nav-link">Home</a>
+  <a href="gallery.html" class="nav-link">Gallery</a>
+  <a href="about.html"   class="nav-link">About</a>
+  <a href="contact.html" class="nav-link">Contact</a>
+</div>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <p class="text-overline" style="color:var(--sand)">311 Handcrafted Pieces</p>
+  <h1 class="display-lg" style="margin-top:0.5rem">Gallery &amp; Portfolio</h1>
+  <p>Browse by category or explore everything — each piece is made with love.</p>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="filter-bar-inner">
+    
+    
+    
+    <button class="filter-pill active" data-filter="all">All <span class="count-badge">311</span></button>
+    <button class="filter-pill" data-filter="Coasters">Coasters</button>
+    <button class="filter-pill" data-filter="Crochet">Crochet</button>
+    <button class="filter-pill" data-filter="CustomisedPouches">Customised Pouches</button>
+    <button class="filter-pill" data-filter="decor">Decor</button>
+    <button class="filter-pill" data-filter="Diwali">Diwali</button>
+    <button class="filter-pill" data-filter="FridgeMagnets">Fridge Magnets</button>
+    <button class="filter-pill" data-filter="FriendGift">Friend Gifts</button>
+    <button class="filter-pill" data-filter="Jewellery">Jewellery</button>
+    <button class="filter-pill" data-filter="JewelleryBoxes">Jewellery Boxes</button>
+    <button class="filter-pill" data-filter="KeyChains">Key Chains</button>
+    <button class="filter-pill" data-filter="KolamManai">Kolam Manai</button>
+    <button class="filter-pill" data-filter="Miniatures">Miniatures</button>
+    <button class="filter-pill" data-filter="PegDolls">Peg Dolls</button>
+    <button class="filter-pill" data-filter="PersonalisedGifts">Personalised Gifts</button>
+    <button class="filter-pill" data-filter="Quilling">Quilling</button>
+    <button class="filter-pill" data-filter="ReturnGifts">Return Gifts</button>
+    <button class="filter-pill" data-filter="Trays">Trays</button>
+    <button class="filter-pill" data-filter="WeddingGifts">Wedding Gifts</button>
+  
+  
+  
+  </div>
+</div>
+
+<!-- GALLERY GRID -->
+<section class="section-sm">
+  <div class="container">
+    <div class="gallery-grid stagger" id="galleryGrid">
+      <div class="gallery-card fade-up" data-category="Coasters">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Coasters/coaster-001.jpg" alt="Coaster 001" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Coaster 001</div><div class="gallery-card-cat">Coasters</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Coasters">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Coasters/coaster-002.jpg" alt="Coaster 002" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Coaster 002</div><div class="gallery-card-cat">Coasters</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Coasters">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Coasters/coaster-003.jpg" alt="Coaster 003" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Coaster 003</div><div class="gallery-card-cat">Coasters</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Coasters">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Coasters/coaster-004.jpg" alt="Coaster 004" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Coaster 004</div><div class="gallery-card-cat">Coasters</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Coasters">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Coasters/coaster-bead-1.jpg" alt="Coaster Bead 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Coaster Bead 1</div><div class="gallery-card-cat">Coasters</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Coasters">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Coasters/coaster-bead-set.jpg" alt="Coaster Bead Set" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Coaster Bead Set</div><div class="gallery-card-cat">Coasters</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-001.jpg" alt="Crochet 001" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 001</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-002.jpg" alt="Crochet 002" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 002</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-003.jpg" alt="Crochet 003" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 003</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-004.jpg" alt="Crochet 004" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 004</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-005.jpg" alt="Crochet 005" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 005</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-006.jpg" alt="Crochet 006" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 006</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-007.jpg" alt="Crochet 007" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 007</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-008.jpg" alt="Crochet 008" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 008</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-009.jpg" alt="Crochet 009" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 009</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-010.jpg" alt="Crochet 010" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 010</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-011.jpg" alt="Crochet 011" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 011</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-012.jpg" alt="Crochet 012" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 012</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-013.jpg" alt="Crochet 013" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 013</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-014.jpg" alt="Crochet 014" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 014</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-015.webp" alt="Crochet 015" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 015</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-016.jpg" alt="Crochet 016" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 016</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-017.webp" alt="Crochet 017" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 017</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-018.jpg" alt="Crochet 018" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 018</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-019.webp" alt="Crochet 019" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 019</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-020.webp" alt="Crochet 020" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 020</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-021.jpg" alt="Crochet 021" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 021</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Crochet">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Crochet/crochet-022.webp" alt="Crochet 022" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Crochet 022</div><div class="gallery-card-cat">Crochet</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="CustomisedPouches">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/CustomisedPouches/pouch-customised-1.jpg" alt="Pouch Customised 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Pouch Customised 1</div><div class="gallery-card-cat">Customised Pouches</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-001.jpg" alt="Decor 001" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor 001</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-002.jpg" alt="Decor 002" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor 002</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-003.jpg" alt="Decor 003" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor 003</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-004.jpg" alt="Decor 004" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor 004</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-005.jpg" alt="Decor 005" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor 005</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-006.jpg" alt="Decor 006" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor 006</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-007.jpg" alt="Decor 007" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor 007</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-008.jpg" alt="Decor 008" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor 008</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-009.jpg" alt="Decor 009" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor 009</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-010.jpg" alt="Decor 010" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor 010</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-011.jpg" alt="Decor 011" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor 011</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-012.jpg" alt="Decor 012" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor 012</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-013.jpg" alt="Decor 013" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor 013</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-014.jpg" alt="Decor 014" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor 014</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-015.jpg" alt="Decor 015" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor 015</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-016.jpg" alt="Decor 016" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor 016</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-017.jpg" alt="Decor 017" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor 017</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-babushka.jpg" alt="Decor Babushka" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor Babushka</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="decor">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/decor/decor-ganesha.jpg" alt="Decor Ganesha" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor Ganesha</div><div class="gallery-card-cat">Decor</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Diwali" data-images="uploads/category/Diwali/diya-hamper-1.jpg|uploads/category/Diwali/diya-hamper-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Diwali/diya-hamper-1.jpg" alt="Diya Hamper 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Diya Hamper 1 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Diwali</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-001.jpg" alt="Magnet 001" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 001</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-002.jpg" alt="Magnet 002" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 002</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-003.jpg" alt="Magnet 003" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 003</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-004.jpg" alt="Magnet 004" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 004</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-005.jpg" alt="Magnet 005" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 005</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-006.jpg" alt="Magnet 006" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 006</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-007.jpg" alt="Magnet 007" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 007</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-008.jpg" alt="Magnet 008" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 008</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-009.jpg" alt="Magnet 009" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 009</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-010.jpg" alt="Magnet 010" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 010</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-011.jpg" alt="Magnet 011" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 011</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-012.jpg" alt="Magnet 012" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 012</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-013.jpg" alt="Magnet 013" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 013</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-014.jpg" alt="Magnet 014" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 014</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-015.jpg" alt="Magnet 015" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 015</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-016.jpg" alt="Magnet 016" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 016</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-017.jpg" alt="Magnet 017" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 017</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-018.jpg" alt="Magnet 018" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 018</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-019.jpg" alt="Magnet 019" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 019</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-020.jpg" alt="Magnet 020" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 020</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-021.jpg" alt="Magnet 021" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 021</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-022.jpg" alt="Magnet 022" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 022</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-023.jpg" alt="Magnet 023" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 023</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-024.jpg" alt="Magnet 024" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet 024</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-ganesha.jpg" alt="Magnet Ganesha" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet Ganesha</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FridgeMagnets">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FridgeMagnets/magnet-holi.jpg" alt="Magnet Holi" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Magnet Holi</div><div class="gallery-card-cat">Fridge Magnets</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FriendGift">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FriendGift/friend-gift-001.jpg" alt="Friend Gift 001" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Friend Gift 001</div><div class="gallery-card-cat">Friend Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FriendGift">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FriendGift/friend-gift-1.jpg" alt="Friend Gift 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Friend Gift 1</div><div class="gallery-card-cat">Friend Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FriendGift">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FriendGift/friend-gift-2.jpg" alt="Friend Gift 2" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Friend Gift 2</div><div class="gallery-card-cat">Friend Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="FriendGift">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/FriendGift/friend-gift-3.jpg" alt="Friend Gift 3" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Friend Gift 3</div><div class="gallery-card-cat">Friend Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/choker-black.jpg" alt="Choker Black" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Choker Black</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/design-krishna.jpg" alt="Design Krishna" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Design Krishna</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/design-warli.jpg" alt="Design Warli" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Design Warli</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/ear-rings-1.jpeg" alt="Ear Rings 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Ear Rings 1</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery" data-images="uploads/category/Jewellery/jewellery-001.jpg|uploads/category/Jewellery/set-purple-1.jpg|uploads/category/Jewellery/set-purple-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/jewellery-001.jpg" alt="Jewellery 001" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Jewellery 001 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">3</span></div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/jewellery-002.jpg" alt="Jewellery 002" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Jewellery 002</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/jewellery-003.jpg" alt="Jewellery 003" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Jewellery 003</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/jewellery-004.jpg" alt="Jewellery 004" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Jewellery 004</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/jewellery-005.jpg" alt="Jewellery 005" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Jewellery 005</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/jewellery-006.jpg" alt="Jewellery 006" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Jewellery 006</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/jewellery-007.jpg" alt="Jewellery 007" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Jewellery 007</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/jewellery-008.jpg" alt="Jewellery 008" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Jewellery 008</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/jewellery-009.jpg" alt="Jewellery 009" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Jewellery 009</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/jewellery-010.jpg" alt="Jewellery 010" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Jewellery 010</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/jewellery-011.jpg" alt="Jewellery 011" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Jewellery 011</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/set-black-pink.jpg" alt="Set Black Pink" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Set Black Pink</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/set-blue.jpg" alt="Set Blue" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Set Blue</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/set-green.jpg" alt="Set Green" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Set Green</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/set-light-green.jpg" alt="Set Light Green" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Set Light Green</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/set-mango.jpg" alt="Set Mango" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Set Mango</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/set-maroon.jpg" alt="Set Maroon" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Set Maroon</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/set-orange.jpg" alt="Set Orange" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Set Orange</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/set-peach.jpg" alt="Set Peach" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Set Peach</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/set-pink.jpg" alt="Set Pink" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Set Pink</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Jewellery">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Jewellery/set-yellow-white.jpg" alt="Set Yellow White" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Set Yellow White</div><div class="gallery-card-cat">Jewellery</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="JewelleryBoxes" data-images="uploads/category/JewelleryBoxes/box-001.jpg|uploads/category/JewelleryBoxes/box-rajasthani-puppet.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/JewelleryBoxes/box-001.jpg" alt="Box 001" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Box 001 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Jewellery Boxes</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="JewelleryBoxes">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/JewelleryBoxes/box-002.jpg" alt="Box 002" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Box 002</div><div class="gallery-card-cat">Jewellery Boxes</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="JewelleryBoxes" data-images="uploads/category/JewelleryBoxes/box-003.jpg|uploads/category/JewelleryBoxes/box-butterfly-1.jpg|uploads/category/JewelleryBoxes/box-butterfly-2.jpg|uploads/category/JewelleryBoxes/box-butterfly-3.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/JewelleryBoxes/box-003.jpg" alt="Box 003" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Box 003 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">4</span></div><div class="gallery-card-cat">Jewellery Boxes</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="JewelleryBoxes">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/JewelleryBoxes/box-004.jpg" alt="Box 004" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Box 004</div><div class="gallery-card-cat">Jewellery Boxes</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="JewelleryBoxes">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/JewelleryBoxes/box-005.jpg" alt="Box 005" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Box 005</div><div class="gallery-card-cat">Jewellery Boxes</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="JewelleryBoxes">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/JewelleryBoxes/box-006.jpg" alt="Box 006" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Box 006</div><div class="gallery-card-cat">Jewellery Boxes</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="JewelleryBoxes">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/JewelleryBoxes/box-007.webp" alt="Box 007" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Box 007</div><div class="gallery-card-cat">Jewellery Boxes</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KeyChains">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KeyChains/key-chain-001.jpg" alt="Key Chain 001" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Key Chain 001</div><div class="gallery-card-cat">Key Chains</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KeyChains">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KeyChains/key-chain-002.jpg" alt="Key Chain 002" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Key Chain 002</div><div class="gallery-card-cat">Key Chains</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KeyChains">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KeyChains/key-chain-003.jpg" alt="Key Chain 003" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Key Chain 003</div><div class="gallery-card-cat">Key Chains</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KeyChains">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KeyChains/key-chain-004.jpg" alt="Key Chain 004" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Key Chain 004</div><div class="gallery-card-cat">Key Chains</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KeyChains">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KeyChains/key-chain-005.jpg" alt="Key Chain 005" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Key Chain 005</div><div class="gallery-card-cat">Key Chains</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KeyChains">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KeyChains/key-chain-006.jpg" alt="Key Chain 006" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Key Chain 006</div><div class="gallery-card-cat">Key Chains</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KeyChains">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KeyChains/key-chain-007.jpg" alt="Key Chain 007" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Key Chain 007</div><div class="gallery-card-cat">Key Chains</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KolamManai" data-images="uploads/category/KolamManai/manai-001.jpg|uploads/category/KolamManai/manai-design-4.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KolamManai/manai-001.jpg" alt="Manai 001" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Manai 001 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Kolam Manai</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KolamManai" data-images="uploads/category/KolamManai/manai-002.jpg|uploads/category/KolamManai/manai-design-3-a.jpg|uploads/category/KolamManai/manai-design-3-b.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KolamManai/manai-002.jpg" alt="Manai 002" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Manai 002 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">3</span></div><div class="gallery-card-cat">Kolam Manai</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KolamManai">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KolamManai/manai-003.jpg" alt="Manai 003" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Manai 003</div><div class="gallery-card-cat">Kolam Manai</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KolamManai" data-images="uploads/category/KolamManai/manai-004.jpg|uploads/category/KolamManai/manai-lotus-1.jpg|uploads/category/KolamManai/manai-lotus-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KolamManai/manai-004.jpg" alt="Manai 004" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Manai 004 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">3</span></div><div class="gallery-card-cat">Kolam Manai</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KolamManai">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KolamManai/manai-005.jpg" alt="Manai 005" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Manai 005</div><div class="gallery-card-cat">Kolam Manai</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KolamManai">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KolamManai/manai-006.jpg" alt="Manai 006" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Manai 006</div><div class="gallery-card-cat">Kolam Manai</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KolamManai">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KolamManai/manai-007.jpg" alt="Manai 007" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Manai 007</div><div class="gallery-card-cat">Kolam Manai</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KolamManai">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KolamManai/manai-008.jpg" alt="Manai 008" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Manai 008</div><div class="gallery-card-cat">Kolam Manai</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KolamManai">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KolamManai/manai-009.jpg" alt="Manai 009" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Manai 009</div><div class="gallery-card-cat">Kolam Manai</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KolamManai">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KolamManai/manai-010.jpg" alt="Manai 010" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Manai 010</div><div class="gallery-card-cat">Kolam Manai</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KolamManai">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KolamManai/manai-011.jpg" alt="Manai 011" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Manai 011</div><div class="gallery-card-cat">Kolam Manai</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KolamManai">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KolamManai/manai-012.jpg" alt="Manai 012" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Manai 012</div><div class="gallery-card-cat">Kolam Manai</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KolamManai">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KolamManai/manai-013.jpg" alt="Manai 013" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Manai 013</div><div class="gallery-card-cat">Kolam Manai</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KolamManai">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KolamManai/manai-014.jpg" alt="Manai 014" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Manai 014</div><div class="gallery-card-cat">Kolam Manai</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KolamManai">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KolamManai/manai-015.jpg" alt="Manai 015" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Manai 015</div><div class="gallery-card-cat">Kolam Manai</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KolamManai" data-images="uploads/category/KolamManai/manai-design-1-a.jpg|uploads/category/KolamManai/manai-design-1-b.jpg|uploads/category/KolamManai/manai-design-1-c.jpg|uploads/category/KolamManai/manai-design-1-d.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KolamManai/manai-design-1-a.jpg" alt="Manai Design 1 A" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Manai Design 1 A <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">4</span></div><div class="gallery-card-cat">Kolam Manai</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="KolamManai" data-images="uploads/category/KolamManai/manai-design-2-a.jpg|uploads/category/KolamManai/manai-design-2-b.jpg|uploads/category/KolamManai/manai-design-2-c.jpg|uploads/category/KolamManai/manai-design-2-d.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/KolamManai/manai-design-2-a.jpg" alt="Manai Design 2 A" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Manai Design 2 A <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">4</span></div><div class="gallery-card-cat">Kolam Manai</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures" data-images="uploads/category/Miniatures/bag-handbag-1.jpg|uploads/category/Miniatures/bag-handbag-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/bag-handbag-1.jpg" alt="Bag Handbag 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Bag Handbag 1 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures" data-images="uploads/category/Miniatures/book-1.jpg|uploads/category/Miniatures/book-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/book-1.jpg" alt="Book 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Book 1 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures" data-images="uploads/category/Miniatures/clock-1.jpg|uploads/category/Miniatures/miniature-048.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/clock-1.jpg" alt="Clock 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Clock 1 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/decor-gana.jpg" alt="Decor Gana" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Decor Gana</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/food-carrot-halwa.jpg" alt="Food Carrot Halwa" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Food Carrot Halwa</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/food-carrots.jpg" alt="Food Carrots" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Food Carrots</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/food-dosa.jpg" alt="Food Dosa" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Food Dosa</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/food-gujiya.jpg" alt="Food Gujiya" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Food Gujiya</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/food-idli-sambhar.jpg" alt="Food Idli Sambhar" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Food Idli Sambhar</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/food-lays.jpg" alt="Food Lays" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Food Lays</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/food-mango-pickle-set.jpg" alt="Food Mango Pickle Set" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Food Mango Pickle Set</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/food-mangoes.jpg" alt="Food Mangoes" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Food Mangoes</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures" data-images="uploads/category/Miniatures/food-pani-puri-1.jpg|uploads/category/Miniatures/food-pani-puri-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/food-pani-puri-1.jpg" alt="Food Pani Puri 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Food Pani Puri 1 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures" data-images="uploads/category/Miniatures/food-parle-g-1.jpg|uploads/category/Miniatures/food-parle-g-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/food-parle-g-1.jpg" alt="Food Parle G 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Food Parle G 1 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/food-pongal-karumbu.jpg" alt="Food Pongal Karumbu" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Food Pongal Karumbu</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-001.jpg" alt="Miniature 001" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 001</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-002.jpg" alt="Miniature 002" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 002</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-003.jpg" alt="Miniature 003" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 003</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-004.jpg" alt="Miniature 004" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 004</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-005.jpg" alt="Miniature 005" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 005</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-006.jpg" alt="Miniature 006" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 006</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-007.jpg" alt="Miniature 007" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 007</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-008.jpg" alt="Miniature 008" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 008</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-009.jpg" alt="Miniature 009" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 009</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-010.jpg" alt="Miniature 010" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 010</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-011.jpg" alt="Miniature 011" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 011</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-012.jpg" alt="Miniature 012" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 012</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-013.jpg" alt="Miniature 013" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 013</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-014.jpg" alt="Miniature 014" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 014</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-015.jpg" alt="Miniature 015" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 015</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-016.jpg" alt="Miniature 016" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 016</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-017.jpg" alt="Miniature 017" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 017</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-018.jpg" alt="Miniature 018" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 018</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-019.jpg" alt="Miniature 019" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 019</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-020.jpg" alt="Miniature 020" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 020</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-021.jpg" alt="Miniature 021" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 021</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-022.jpg" alt="Miniature 022" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 022</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-023.jpg" alt="Miniature 023" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 023</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-024.jpg" alt="Miniature 024" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 024</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-025.jpg" alt="Miniature 025" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 025</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-026.jpg" alt="Miniature 026" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 026</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-027.jpg" alt="Miniature 027" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 027</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-028.jpg" alt="Miniature 028" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 028</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-029.jpg" alt="Miniature 029" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 029</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-030.jpg" alt="Miniature 030" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 030</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-031.jpg" alt="Miniature 031" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 031</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-032.jpg" alt="Miniature 032" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 032</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-033.jpg" alt="Miniature 033" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 033</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-034.jpg" alt="Miniature 034" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 034</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-035.jpg" alt="Miniature 035" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 035</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-036.jpg" alt="Miniature 036" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 036</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures" data-images="uploads/category/Miniatures/miniature-037.jpg|uploads/category/Miniatures/miniature-038.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-037.jpg" alt="Miniature 037" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 037 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-039.jpg" alt="Miniature 039" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 039</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-040.jpg" alt="Miniature 040" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 040</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-041.jpg" alt="Miniature 041" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 041</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-042.jpg" alt="Miniature 042" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 042</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-043.jpg" alt="Miniature 043" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 043</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-044.jpg" alt="Miniature 044" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 044</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-045.jpg" alt="Miniature 045" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 045</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-046.jpg" alt="Miniature 046" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 046</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-047.jpg" alt="Miniature 047" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 047</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/miniature-049.jpg" alt="Miniature 049" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature 049</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/planter-heart.jpg" alt="Planter Heart" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Planter Heart</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures" data-images="uploads/category/Miniatures/pongal-panai-1.jpg|uploads/category/Miniatures/pongal-panai-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/pongal-panai-1.jpg" alt="Pongal Panai 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Pongal Panai 1 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/toy-teddy-in-bottle.jpg" alt="Toy Teddy In Bottle" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Toy Teddy In Bottle</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/toy-teddy-on-car.jpg" alt="Toy Teddy On Car" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Toy Teddy On Car</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/toy-teddy-on-cupcake.jpg" alt="Toy Teddy On Cupcake" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Toy Teddy On Cupcake</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/tumbler-stanley.jpg" alt="Tumbler Stanley" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Tumbler Stanley</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures" data-images="uploads/category/Miniatures/vase-rose-square-1.jpg|uploads/category/Miniatures/vase-rose-square-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/vase-rose-square-1.jpg" alt="Vase Rose Square 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Vase Rose Square 1 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Miniatures">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Miniatures/wine-bottle.jpg" alt="Wine Bottle" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Wine Bottle</div><div class="gallery-card-cat">Miniatures</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PegDolls">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PegDolls/peg-doll-001.jpg" alt="Peg Doll 001" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Peg Doll 001</div><div class="gallery-card-cat">Peg Dolls</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PegDolls">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PegDolls/peg-doll-002.jpg" alt="Peg Doll 002" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Peg Doll 002</div><div class="gallery-card-cat">Peg Dolls</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PegDolls">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PegDolls/peg-doll-003.jpg" alt="Peg Doll 003" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Peg Doll 003</div><div class="gallery-card-cat">Peg Dolls</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PegDolls">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PegDolls/peg-doll-004.jpg" alt="Peg Doll 004" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Peg Doll 004</div><div class="gallery-card-cat">Peg Dolls</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PegDolls">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PegDolls/peg-doll-005.jpg" alt="Peg Doll 005" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Peg Doll 005</div><div class="gallery-card-cat">Peg Dolls</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PegDolls">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PegDolls/peg-doll-006.jpg" alt="Peg Doll 006" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Peg Doll 006</div><div class="gallery-card-cat">Peg Dolls</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts" data-images="uploads/category/PersonalisedGifts/couple-rajasthani-1.jpg|uploads/category/PersonalisedGifts/couple-rajasthani-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/couple-rajasthani-1.jpg" alt="Couple Rajasthani 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Couple Rajasthani 1 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/furniture-chairs-and-table.jpg" alt="Furniture Chairs And Table" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Furniture Chairs And Table</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts" data-images="uploads/category/PersonalisedGifts/furniture-work-table-1.jpg|uploads/category/PersonalisedGifts/furniture-work-table-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/furniture-work-table-1.jpg" alt="Furniture Work Table 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Furniture Work Table 1 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/miniature-suitcase.jpg" alt="Miniature Suitcase" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Miniature Suitcase</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-001.jpg" alt="Personalised 001" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 001</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-002.jpg" alt="Personalised 002" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 002</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-003.jpg" alt="Personalised 003" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 003</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts" data-images="uploads/category/PersonalisedGifts/personalised-004.jpg|uploads/category/PersonalisedGifts/shop-petti-kadai-1.jpg|uploads/category/PersonalisedGifts/shop-petti-kadai-2.jpg|uploads/category/PersonalisedGifts/shop-petti-kadai-3.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-004.jpg" alt="Personalised 004" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 004 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">4</span></div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-005.jpg" alt="Personalised 005" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 005</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-006.jpg" alt="Personalised 006" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 006</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-007.jpg" alt="Personalised 007" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 007</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-008.jpg" alt="Personalised 008" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 008</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-009.jpg" alt="Personalised 009" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 009</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-010.jpg" alt="Personalised 010" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 010</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-011.jpg" alt="Personalised 011" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 011</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-012.jpg" alt="Personalised 012" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 012</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-013.jpg" alt="Personalised 013" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 013</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-014.jpg" alt="Personalised 014" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 014</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-015.jpg" alt="Personalised 015" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 015</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-016.jpg" alt="Personalised 016" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 016</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-017.jpg" alt="Personalised 017" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 017</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-018.jpg" alt="Personalised 018" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 018</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-019.jpg" alt="Personalised 019" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 019</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-020.jpg" alt="Personalised 020" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 020</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-021.jpg" alt="Personalised 021" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 021</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-022.jpg" alt="Personalised 022" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 022</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-023.jpg" alt="Personalised 023" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 023</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-024.jpg" alt="Personalised 024" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 024</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-025.jpg" alt="Personalised 025" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 025</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-026.jpg" alt="Personalised 026" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 026</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-027.jpg" alt="Personalised 027" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 027</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-028.jpg" alt="Personalised 028" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 028</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-029.jpg" alt="Personalised 029" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 029</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-030.jpg" alt="Personalised 030" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 030</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/personalised-031.jpg" alt="Personalised 031" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Personalised 031</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/quilled-ganesha.jpg" alt="Quilled Ganesha" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Quilled Ganesha</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/scene-beach.jpg" alt="Scene Beach" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Scene Beach</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/scene-bench-couple.jpg" alt="Scene Bench Couple" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Scene Bench Couple</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/scene-classroom.jpg" alt="Scene Classroom" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Scene Classroom</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts" data-images="uploads/category/PersonalisedGifts/scene-family-1.jpg|uploads/category/PersonalisedGifts/scene-family-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/scene-family-1.jpg" alt="Scene Family 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Scene Family 1 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts" data-images="uploads/category/PersonalisedGifts/scene-house-warming-1.jpg|uploads/category/PersonalisedGifts/scene-house-warming-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/scene-house-warming-1.jpg" alt="Scene House Warming 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Scene House Warming 1 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/scene-little-girl.jpg" alt="Scene Little Girl" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Scene Little Girl</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/scene-sister.jpg" alt="Scene Sister" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Scene Sister</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/shop-bajji.jpg" alt="Shop Bajji" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Shop Bajji</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts" data-images="uploads/category/PersonalisedGifts/shop-bookshelf-1.jpg|uploads/category/PersonalisedGifts/shop-bookshelf-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/shop-bookshelf-1.jpg" alt="Shop Bookshelf 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Shop Bookshelf 1 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/shop-flower.jpg" alt="Shop Flower" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Shop Flower</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/shop-rice.jpg" alt="Shop Rice" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Shop Rice</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/shop-tea-kadai.jpg" alt="Shop Tea Kadai" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Shop Tea Kadai</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/teddy-cup.jpg" alt="Teddy Cup" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Teddy Cup</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/vessel-terracotta.jpg" alt="Vessel Terracotta" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Vessel Terracotta</div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="PersonalisedGifts" data-images="uploads/category/PersonalisedGifts/vessel-traditional-1.jpg|uploads/category/PersonalisedGifts/vessel-traditional-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/PersonalisedGifts/vessel-traditional-1.jpg" alt="Vessel Traditional 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Vessel Traditional 1 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Personalised Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Quilling">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Quilling/quilling-001.jpg" alt="Quilling 001" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Quilling 001</div><div class="gallery-card-cat">Quilling</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Quilling">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Quilling/quilling-002.jpg" alt="Quilling 002" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Quilling 002</div><div class="gallery-card-cat">Quilling</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Quilling">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Quilling/quilling-003.jpg" alt="Quilling 003" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Quilling 003</div><div class="gallery-card-cat">Quilling</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Quilling">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Quilling/quilling-004.jpg" alt="Quilling 004" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Quilling 004</div><div class="gallery-card-cat">Quilling</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Quilling">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Quilling/quilling-005.jpg" alt="Quilling 005" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Quilling 005</div><div class="gallery-card-cat">Quilling</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Quilling">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Quilling/quilling-006.jpg" alt="Quilling 006" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Quilling 006</div><div class="gallery-card-cat">Quilling</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Quilling">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Quilling/quilling-007.jpg" alt="Quilling 007" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Quilling 007</div><div class="gallery-card-cat">Quilling</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Quilling">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Quilling/quilling-008.jpg" alt="Quilling 008" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Quilling 008</div><div class="gallery-card-cat">Quilling</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Quilling">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Quilling/quilling-009.jpg" alt="Quilling 009" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Quilling 009</div><div class="gallery-card-cat">Quilling</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts" data-images="uploads/category/ReturnGifts/amman-padam-1.jpg|uploads/category/ReturnGifts/amman-padam-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/amman-padam-1.jpg" alt="Amman Padam 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Amman Padam 1 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/ganesha-mandala-1.jpg" alt="Ganesha Mandala 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Ganesha Mandala 1</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/ganesha-mandala-lotus.jpg" alt="Ganesha Mandala Lotus" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Ganesha Mandala Lotus</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/ganesha-manjal-kumkum.jpg" alt="Ganesha Manjal Kumkum" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Ganesha Manjal Kumkum</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts" data-images="uploads/category/ReturnGifts/haldi-kumkum.jpg|uploads/category/ReturnGifts/return-gift-001.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/haldi-kumkum.jpg" alt="Haldi Kumkum" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Haldi Kumkum <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/kolam-aqua.jpg" alt="Kolam Aqua" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Kolam Aqua</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/kolam-base.jpg" alt="Kolam Base" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Kolam Base</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/kolam-green.jpg" alt="Kolam Green" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Kolam Green</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/kolam-light-blue.jpg" alt="Kolam Light Blue" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Kolam Light Blue</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/kolam-parrot-green.jpg" alt="Kolam Parrot Green" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Kolam Parrot Green</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/kolam-peach.jpg" alt="Kolam Peach" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Kolam Peach</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/kolam-pink.jpg" alt="Kolam Pink" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Kolam Pink</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/kolam-purple.jpg" alt="Kolam Purple" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Kolam Purple</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/kolam-yellow.jpg" alt="Kolam Yellow" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Kolam Yellow</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/mandala.jpg" alt="Mandala" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Mandala</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/return-gift-002.jpg" alt="Return Gift 002" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Return Gift 002</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/return-gift-003.jpg" alt="Return Gift 003" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Return Gift 003</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/return-gift-004.jpg" alt="Return Gift 004" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Return Gift 004</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/return-gift-005.jpg" alt="Return Gift 005" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Return Gift 005</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/return-gift-006.jpg" alt="Return Gift 006" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Return Gift 006</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/return-gift-007.jpg" alt="Return Gift 007" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Return Gift 007</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/return-gift-008.jpg" alt="Return Gift 008" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Return Gift 008</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/return-gift-009.jpg" alt="Return Gift 009" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Return Gift 009</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/return-gift-010.jpg" alt="Return Gift 010" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Return Gift 010</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="ReturnGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/ReturnGifts/return-gift-011.jpg" alt="Return Gift 011" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Return Gift 011</div><div class="gallery-card-cat">Return Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Trays">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Trays/tray-1-b.jpg" alt="Tray 1 B" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Tray 1 B</div><div class="gallery-card-cat">Trays</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Trays">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Trays/tray-1.jpg" alt="Tray 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Tray 1</div><div class="gallery-card-cat">Trays</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="Trays" data-images="uploads/category/Trays/tray-2-b.jpg|uploads/category/Trays/tray-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/Trays/tray-2-b.jpg" alt="Tray 2 B" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Tray 2 B <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Trays</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="WeddingGifts" data-images="uploads/category/WeddingGifts/bride-and-groom-1.jpg|uploads/category/WeddingGifts/bride-and-groom-2.jpg">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/WeddingGifts/bride-and-groom-1.jpg" alt="Bride And Groom 1" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Bride And Groom 1 <span style="display:inline-block;background:var(--terracotta);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:6px;vertical-align:middle">2</span></div><div class="gallery-card-cat">Wedding Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="WeddingGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/WeddingGifts/bride-and-groom-indian.jpg" alt="Bride And Groom Indian" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Bride And Groom Indian</div><div class="gallery-card-cat">Wedding Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="WeddingGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/WeddingGifts/mama-maami.jpg" alt="Mama Maami" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Mama Maami</div><div class="gallery-card-cat">Wedding Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="WeddingGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/WeddingGifts/quilled-couple.jpg" alt="Quilled Couple" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Quilled Couple</div><div class="gallery-card-cat">Wedding Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="WeddingGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/WeddingGifts/reception-indian.jpg" alt="Reception Indian" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Reception Indian</div><div class="gallery-card-cat">Wedding Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="WeddingGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/WeddingGifts/wedding-001.jpg" alt="Wedding 001" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Wedding 001</div><div class="gallery-card-cat">Wedding Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="WeddingGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/WeddingGifts/wedding-002.jpg" alt="Wedding 002" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Wedding 002</div><div class="gallery-card-cat">Wedding Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="WeddingGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/WeddingGifts/wedding-003.jpg" alt="Wedding 003" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Wedding 003</div><div class="gallery-card-cat">Wedding Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="WeddingGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/WeddingGifts/wedding-004.jpg" alt="Wedding 004" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Wedding 004</div><div class="gallery-card-cat">Wedding Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="WeddingGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/WeddingGifts/wedding-005.jpg" alt="Wedding 005" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Wedding 005</div><div class="gallery-card-cat">Wedding Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="WeddingGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/WeddingGifts/wedding-006.jpg" alt="Wedding 006" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Wedding 006</div><div class="gallery-card-cat">Wedding Gifts</div></div>
+      </div>
+      <div class="gallery-card fade-up" data-category="WeddingGifts">
+        <div class="img-placeholder" style="aspect-ratio:3/4"><img src="uploads/category/WeddingGifts/wedding-007.jpg" alt="Wedding 007" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>
+        <div class="gallery-card-info"><div class="gallery-card-name">Wedding 007</div><div class="gallery-card-cat">Wedding Gifts</div></div>
+      </div>
+    
+    
+    
+
+    </div><!-- /gallery-grid -->
+
+    <div class="load-more-wrap fade-up">
+      <p style="font-size:0.85rem; color:var(--brown-light); margin-bottom:1rem">Showing all 311 items</p>
+      <a href="contact.html" class="btn btn-primary">Request Custom Order</a>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL -->
+<section class="social-section">
+  <div class="container">
+    <div class="social-inner">
+      <div class="social-text">
+        <h2>See more on social media</h2>
+        <p>New pieces added daily — follow us for the latest</p>
+      </div>
+      <div class="social-icons">
+        <a href="#" class="social-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/></svg>Instagram</a>
+        <a href="#" class="social-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>WhatsApp</a>
+        <a href="#" class="social-icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/></svg>YouTube</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand-logo">
+          <!-- <img src="uploads/Svarci_logo.jpg" alt="Svarci Handicrafts" style="width:64px;height:64px"/> -->
+          <div>
+            <div class="footer-brand-name">Svarci</div>
+            <div class="footer-brand-sub">Handicrafts</div>
+          </div>
+        </div>
+        <p class="footer-brand-desc">Handcrafted with love — miniatures, personalised gifts, jewellery, kolam manai, return gifts and so much more. Every piece tells a story.</p>
+        <div class="footer-social-row" style="margin-top:1rem">
+          <a href="https://www.instagram.com/svarci_handicrafts?igsh=MWV0NjFua3lucmx5NQ%3D%3D&utm_source=qr" target="_blank" class="footer-social-btn" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/></svg></a>
+          <!-- <a href="#" class="footer-social-btn" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a> -->
+          <a href="https://youtube.com/@svarcihandicrafts?si=ZMFDH4HDLDZhxMYF" target="_blank" class="footer-social-btn" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/></svg></a>
+          <a href="https://www.facebook.com/people/Svarci-Handicrafts/100063672683499/?mibextid=wwXIfr&rdid=hg4uT62x1vEkSqeh&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F18ZC5QqPfT%2F%3Fmibextid%3DwwXIfr%26ref%3D1" target="_blank" class="footer-social-btn" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          <a href="https://pin.it/5KSjL2XBw" target="_blank" class="footer-social-btn" aria-label="Pinterest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.236 2.636 7.855 6.356 9.312-.088-.791-.167-2.005.035-2.868.181-.78 1.172-4.97 1.172-4.97s-.299-.598-.299-1.482c0-1.388.806-2.428 1.808-2.428.852 0 1.265.64 1.265 1.408 0 .858-.546 2.14-.828 3.33-.236.995.499 1.806 1.476 1.806 1.772 0 3.136-1.867 3.136-4.563 0-2.385-1.715-4.052-4.163-4.052-2.834 0-4.498 2.126-4.498 4.322 0 .856.33 1.772.741 2.273a.3.3 0 0 1 .069.286c-.075.314-.243.995-.276 1.134-.044.183-.146.222-.337.134-1.249-.581-2.03-2.407-2.03-3.874 0-3.154 2.292-6.052 6.608-6.052 3.469 0 6.165 2.473 6.165 5.776 0 3.447-2.173 6.22-5.19 6.22-1.013 0-1.966-.527-2.292-1.148l-.623 2.378c-.226.869-.835 1.958-1.244 2.621.937.29 1.931.446 2.962.446 5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg></a>
+          <a href="https://www.tiktok.com/@umasara03?_r=1&_t=ZP-96Hqz01YbcN" target="_blank" class="footer-social-btn" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.28 6.28 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.73a8.18 8.18 0 0 0 4.78 1.52V6.79a4.85 4.85 0 0 1-1.01-.1z"/></svg></a>
+        </div>
+      </div>
+      <div>
+        <p class="footer-heading">Pages</p>
+        <ul class="footer-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="gallery.html">Gallery</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-heading">Categories</p>
+        <ul class="footer-links">
+          <li><a href="gallery.html?cat=Miniatures">Miniatures (70)</a></li>
+          <li><a href="gallery.html?cat=PersonalisedGifts">Personalised Gifts (51)</a></li>
+          <li><a href="gallery.html?cat=FridgeMagnets">Fridge Magnets (26)</a></li>
+          <li><a href="gallery.html?cat=Jewellery">Jewellery (25)</a></li>
+          <li><a href="gallery.html?cat=ReturnGifts">Return Gifts (25)</a></li>
+          <li><a href="gallery.html?cat=Crochet">Crochet (22)</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-heading">Get in Touch</p>
+        <p style="font-size:0.85rem;color:var(--brown-light);line-height:1.8">Have a custom order? We'd love to help.</p>
+        <a href="contact.html" class="btn btn-terracotta" style="margin-top:1rem;font-size:0.8rem;padding:0.7rem 1.4rem">Send Inquiry</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Svarci Handicrafts. All rights reserved.</span>
+      <span>Handcrafted with Love ♥</span>
+    </div>
+  </div>
+</footer>
+
+<!-- LIGHTBOX POPUP -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-labelledby="lightboxTitle" aria-hidden="true">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Close popup" type="button">&times;</button>
+  <button class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Previous image" type="button" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+  </button>
+  <button class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Next image" type="button" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+  </button>
+  <div class="lightbox-content">
+    <img class="lightbox-img" id="lightboxImg" src="" alt=""/>
+    <div class="lightbox-info">
+      <div class="lightbox-title" id="lightboxTitle"></div>
+      <div class="lightbox-cat" id="lightboxCat"></div>
+    </div>
+    <div class="lightbox-thumbs" id="lightboxThumbs" hidden></div>
+  </div>
+</div>
+
+<script src="js/main.js"></script>
+<script>
+// Read ?cat= param from URL and activate filter
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const cat = params.get('cat');
+  if (cat) {
+    const pill = document.querySelector(`.filter-pill[data-filter="${cat}"]`);
+    if (pill) {
+      document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      document.querySelectorAll('.gallery-card').forEach(c => {
+        c.classList.toggle('gallery-hidden', c.dataset.category !== cat);
+      });
+    }
+  }
+})();
+
+// Lightbox popup for gallery cards (with multi-image carousel)
+(function() {
+  const lightbox = document.getElementById('lightbox');
+  if (!lightbox) return;
+  const lbImg    = document.getElementById('lightboxImg');
+  const lbTitle  = document.getElementById('lightboxTitle');
+  const lbCat    = document.getElementById('lightboxCat');
+  const lbClose  = document.getElementById('lightboxClose');
+  const lbPrev   = document.getElementById('lightboxPrev');
+  const lbNext   = document.getElementById('lightboxNext');
+  const lbThumbs = document.getElementById('lightboxThumbs');
+
+  const MAX_THUMBS = 5;
+  let images = [];      // current card's image URLs
+  let index  = 0;       // currently displayed index
+  let title  = '';
+  let cat    = '';
+  let lastFocused = null;
+
+  // Build the image list for a given card.
+  // Priority: data-images="path1.jpg|path2.jpg|..." attribute.
+  // Fallback: the single <img> inside the card's .img-placeholder.
+  function getCardImages(card) {
+    const dataImgs = card.getAttribute('data-images');
+    if (dataImgs && dataImgs.trim()) {
+      return dataImgs.split('|').map(s => s.trim()).filter(Boolean);
+    }
+    const img = card.querySelector('.img-placeholder img');
+    return img ? [img.getAttribute('src')] : [];
+  }
+
+  function renderThumbs() {
+    lbThumbs.innerHTML = '';
+    if (images.length <= 1) {
+      lbThumbs.hidden = true;
+      return;
+    }
+    lbThumbs.hidden = false;
+    // Show at most MAX_THUMBS thumbnails, centred around the active one
+    const total = images.length;
+    let start = 0;
+    if (total > MAX_THUMBS) {
+      start = Math.max(0, Math.min(index - Math.floor(MAX_THUMBS / 2), total - MAX_THUMBS));
+    }
+    const end = Math.min(total, start + MAX_THUMBS);
+    for (let i = start; i < end; i++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'lightbox-thumb' + (i === index ? ' is-active' : '');
+      btn.setAttribute('aria-label', 'Show image ' + (i + 1) + ' of ' + total);
+      btn.setAttribute('aria-current', i === index ? 'true' : 'false');
+      btn.dataset.idx = String(i);
+      const t = document.createElement('img');
+      t.src = images[i];
+      t.alt = '';
+      btn.appendChild(t);
+      btn.addEventListener('click', () => show(i));
+      lbThumbs.appendChild(btn);
+    }
+  }
+
+  function show(i) {
+    if (!images.length) return;
+    index = (i + images.length) % images.length;
+    lbImg.src = images[index];
+    lbImg.alt = title ? title + ' (image ' + (index + 1) + ')' : '';
+    lbPrev.hidden = images.length <= 1;
+    lbNext.hidden = images.length <= 1;
+    renderThumbs();
+  }
+
+  function openLightbox(card) {
+    lastFocused = document.activeElement;
+    images = getCardImages(card);
+    if (!images.length) return;
+    const nameEl = card.querySelector('.gallery-card-name');
+    const catEl  = card.querySelector('.gallery-card-cat');
+    title = nameEl ? nameEl.textContent.trim() : '';
+    cat   = catEl  ? catEl.textContent.trim()  : '';
+    lbTitle.textContent = title;
+    lbCat.textContent   = cat;
+    index = 0;
+    show(0);
+    lightbox.classList.add('is-open');
+    lightbox.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('lightbox-open');
+    setTimeout(() => lbClose.focus(), 50);
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('is-open');
+    lightbox.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('lightbox-open');
+    // Clear after transition
+    setTimeout(() => {
+      lbImg.src = '';
+      lbThumbs.innerHTML = '';
+      lbThumbs.hidden = true;
+      images = [];
+    }, 400);
+    if (lastFocused && typeof lastFocused.focus === 'function') {
+      lastFocused.focus();
+    }
+  }
+
+  // Card click / keyboard handling
+  document.querySelectorAll('.gallery-card').forEach(card => {
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    const handler = (e) => {
+      e.preventDefault();
+      openLightbox(card);
+    };
+    card.addEventListener('click', handler);
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') handler(e);
+    });
+  });
+
+  // Controls
+  lbClose.addEventListener('click', closeLightbox);
+  lbPrev.addEventListener('click', () => show(index - 1));
+  lbNext.addEventListener('click', () => show(index + 1));
+
+  // Click backdrop (outside content) to close
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) closeLightbox();
+  });
+
+  // Keyboard: Esc closes, ←/→ navigate
+  document.addEventListener('keydown', (e) => {
+    if (!lightbox.classList.contains('is-open')) return;
+    if (e.key === 'Escape')         closeLightbox();
+    else if (e.key === 'ArrowLeft'  && images.length > 1) show(index - 1);
+    else if (e.key === 'ArrowRight' && images.length > 1) show(index + 1);
+  });
+})();
+</script>
+</body>
+</html>
