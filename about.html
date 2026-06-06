@@ -11,6 +11,21 @@
 </head>
 <body>
 
+
+<div class="page-loader" id="pageLoader"><div class="spinner"></div><div class="label">Loading...</div></div>
+<script>
+  // Hide page loader once images above the fold + DOM are ready
+  (function(){
+    function hide(){
+      var el = document.getElementById('pageLoader');
+      if (el) el.classList.add('is-hidden');
+    }
+    if (document.readyState === 'complete') hide();
+    else window.addEventListener('load', hide);
+    // Safety: never show longer than 4s
+    setTimeout(hide, 4000);
+  })();
+</script>
 <!-- NAV -->
 <nav class="site-nav">
   <div class="nav-inner">
@@ -48,7 +63,7 @@
     </div>
   </div>
   <div class="about-hero-right fade-up">
-    <div class="img-placeholder"><img src="uploads/category/about/uma-saravanan.jpeg" alt="Uma Saravanan — maker at work" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;"/></div>
+    <div class="img-placeholder loading"><img src="uploads/category/about/uma-saravanan.jpeg" alt="Uma Saravanan — maker at work" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;" onload="this.parentNode.classList.remove(&quot;loading&quot;)" onerror="this.parentNode.classList.add(&quot;img-error&quot;);this.parentNode.classList.remove(&quot;loading&quot;)"/></div>
   </div>
 </section>
 
@@ -57,7 +72,7 @@
   <div class="container">
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-md);text-align:center">
       <div class="fade-up">
-        <div style="font-family:var(--font-display);font-size:clamp(2rem,4vw,3rem);font-weight:700;color:var(--terracotta)">311</div>
+        <div style="font-family:var(--font-display);font-size:clamp(2rem,4vw,3rem);font-weight:700;color:var(--terracotta)">308</div>
         <div style="font-size:0.8rem;color:var(--brown-light);letter-spacing:0.1em;text-transform:uppercase;margin-top:4px">Pieces Created</div>
       </div>
       <div class="fade-up">
@@ -149,10 +164,10 @@
       <h2 class="display-md" style="margin-top:0.5rem">Glimpse into the studio</h2>
     </div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-sm)" class="stagger">
-      <a href="gallery.html?cat=PersonalisedGifts" class="fade-up" aria-label="Browse Personalised Gifts"><div class="img-placeholder" style="aspect-ratio:1;border-radius:var(--r-md)"><img src="uploads/category/PersonalisedGifts/quilled-ganesha.jpg" alt="Quilling — Quilled Ganesha" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;"/></div></a>
-      <a href="gallery.html?cat=Miniatures" class="fade-up" aria-label="Browse Miniatures"><div class="img-placeholder" style="aspect-ratio:1;border-radius:var(--r-md)"><img src="uploads/category/Miniatures/food-mango-pickle-set.jpg" alt="Miniatures — Mango Pickle Making Set" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;"/></div></a>
-      <a href="gallery.html?cat=Jewellery" class="fade-up" aria-label="Browse Jewellery"><div class="img-placeholder" style="aspect-ratio:1;border-radius:var(--r-md)"><img src="uploads/category/Jewellery/set-purple-1.jpg" alt="Jewellery — Purple set" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;"/></div></a>
-      <a href="gallery.html?cat=KolamManai" class="fade-up" aria-label="Browse Kolam Manai"><div class="img-placeholder" style="aspect-ratio:1;border-radius:var(--r-md)"><img src="uploads/category/KolamManai/manai-lotus-1.jpg" alt="Kolam Manai — Lotus" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;"/></div></a>
+      <a href="gallery.html?cat=PersonalisedGifts" class="fade-up" aria-label="Browse Personalised Gifts"><div class="img-placeholder loading" style="aspect-ratio:1;border-radius:var(--r-md)"><img src="uploads/category/PersonalisedGifts/quilled-ganesha.jpg" alt="Quilling — Quilled Ganesha" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;" onload="this.parentNode.classList.remove(&quot;loading&quot;)" onerror="this.parentNode.classList.add(&quot;img-error&quot;);this.parentNode.classList.remove(&quot;loading&quot;)"/></div></a>
+      <a href="gallery.html?cat=Miniatures" class="fade-up" aria-label="Browse Miniatures"><div class="img-placeholder loading" style="aspect-ratio:1;border-radius:var(--r-md)"><img src="uploads/category/Miniatures/food-mango-pickle-set.jpg" alt="Miniatures — Mango Pickle Making Set" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;" onload="this.parentNode.classList.remove(&quot;loading&quot;)" onerror="this.parentNode.classList.add(&quot;img-error&quot;);this.parentNode.classList.remove(&quot;loading&quot;)"/></div></a>
+      <a href="gallery.html?cat=Jewellery" class="fade-up" aria-label="Browse Jewellery"><div class="img-placeholder loading" style="aspect-ratio:1;border-radius:var(--r-md)"><img src="uploads/category/Jewellery/set-purple-1.jpg" alt="Jewellery — Purple set" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;" onload="this.parentNode.classList.remove(&quot;loading&quot;)" onerror="this.parentNode.classList.add(&quot;img-error&quot;);this.parentNode.classList.remove(&quot;loading&quot;)"/></div></a>
+      <a href="gallery.html?cat=KolamManai" class="fade-up" aria-label="Browse Kolam Manai"><div class="img-placeholder loading" style="aspect-ratio:1;border-radius:var(--r-md)"><img src="uploads/category/KolamManai/manai-lotus-1.jpg" alt="Kolam Manai — Lotus" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;" onload="this.parentNode.classList.remove(&quot;loading&quot;)" onerror="this.parentNode.classList.add(&quot;img-error&quot;);this.parentNode.classList.remove(&quot;loading&quot;)"/></div></a>
     </div>
   </div>
 </section>
@@ -176,7 +191,7 @@
     <div class="footer-grid">
       <div>
         <div class="footer-brand-logo">
-          <!-- <img src="uploads/Svarci_logo.jpg" alt="Svarci Handicrafts" style="width:64px;height:64px"/> -->
+          <!-- <img src="uploads/Svarci_handicrafts_logo.jpg" alt="Svarci Handicrafts" style="width:64px;height:64px"/> -->
           <div>
             <div class="footer-brand-name">Svarci</div>
             <div class="footer-brand-sub">Handicrafts</div>
