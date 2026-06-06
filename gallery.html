@@ -160,25 +160,13 @@
       .lightbox-thumbs { padding: 0.5rem 0.75rem 0.75rem; gap: 6px; }
     }
   </style>
+  <link rel="icon" href="favicon.ico" sizes="any"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"/>
+  <link rel="manifest" href="site.webmanifest"/>
+  <meta name="theme-color" content="#C4704A"/>
 </head>
-<body>
-
-
-<div class="page-loader" id="pageLoader"><div class="spinner"></div><div class="label">Loading...</div></div>
-<script>
-  // Hide page loader once images above the fold + DOM are ready
-  (function(){
-    function hide(){
-      var el = document.getElementById('pageLoader');
-      if (el) el.classList.add('is-hidden');
-    }
-    if (document.readyState === 'complete') hide();
-    else window.addEventListener('load', hide);
-    // Safety: never show longer than 4s
-    setTimeout(hide, 4000);
-  })();
-</script>
-<!-- NAV -->
+<body><!-- NAV -->
 <nav class="site-nav">
   <div class="nav-inner">
     <a href="index.html" class="nav-logo">
